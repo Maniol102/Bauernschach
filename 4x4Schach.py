@@ -80,7 +80,7 @@ def move(board, turn, p1, p2):
 def won(board, turn):
     #Hat ein Spieler die andere Seite erreicht
     for i in range(BOARD_SIZE):
-        if (board[0][i] == WHITE):    
+        if (board[0][i] == WHITE):
             return WHITE
         if (board[BOARD_SIZE - 1][i] == BLACK):
             return BLACK
@@ -89,18 +89,18 @@ def won(board, turn):
     if (turn == WHITE):
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
-                if (not(move([x[:] for x in board], turn, (j, i), (j, i - 1)) == False)):
+                if (can_forward(board, turn, (j, i))):
                     return EMPTY
-                if(not(move([x[:] for x in board], turn, (j, i), (j - 1, i - 1)) == False) or not(move([x[:] for x in board], turn, (j, i), (j + 1, i - 1)) == False)):
+                if(can_capture_left(board, turn, (j, i)) or can_capture_right(board, turn, (j, i))):
                     return EMPTY
         return BLACK
     #überprüfen ob schwarz bei der gegebenen Position verliert
     else:
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
-                if (not(move([x[:] for x in board], turn, (j, i), (j, i + 1)) == False)):
+                if (can_forward(board, turn, (j, i))):
                     return EMPTY
-                if(not(move([x[:] for x in board], turn, (j, i), (j - 1, i + 1)) == False) or not(move([x[:] for x in board], turn, (j, i), (j + 1, i + 1)) == False)):
+                if(can_capture_left(board, turn, (j, i)) or can_capture_right(board, turn, (j, i))):
                     return EMPTY
         return WHITE
 
@@ -114,24 +114,43 @@ def possible_moves(board, turn):
                 #für weiss
                 if (turn == WHITE):
                     #Vorwärts
-                    if (not(move([x[:] for x in board], turn, (j, i), (j, i - 1)) == False)):
+                    if (can_forward(board, turn, (j, i))):
                         moves.append([(j, i), (j, i - 1)])
                     #Diagonales Schlagen
-                    if (not(move([x[:] for x in board], turn, (j, i), (j - 1, i - 1)) == False)):
+                    if (can_capture_left(board, turn, (j, i))):
                         moves.append([(j, i), (j - 1, i - 1)])
-                    if (not(move([x[:] for x in board], turn, (j, i), (j + 1, i - 1)) == False)):
+                    if (can_capture_right(board, turn, (j, i))):
                         moves.append([(j, i), (j + 1, i - 1)])
                 #für schwarz
                 else:
                     #Vorwärts
-                    if (not(move([x[:] for x in board], turn, (j, i), (j, i + 1)) == False)):
+                    if (can_forward(board, turn, (j, i))):
                         moves.append([(j, i), (j, i + 1)])
                     #Diagonales Schlagen
-                    if (not(move([x[:] for x in board], turn, (j, i), (j - 1, i + 1)) == False)):
+                    if (can_capture_left(board, turn, (j, i))):
                         moves.append([(j, i), (j - 1, i + 1)])
-                    if (not(move([x[:] for x in board], turn, (j, i), (j + 1, i + 1)) == False)):
+                    if (can_capture_right(board, turn, (j, i))):
                         moves.append([(j, i), (j + 1, i + 1)])
     return moves
+
+
+def can_forward(board, turn, coordinates):
+    if turn == WHITE:
+        return not move([x[:] for x in board], turn, coordinates, (coordinates[0], coordinates[1] - 1)) == False
+    return not move([x[:] for x in board], turn, coordinates, (coordinates[0], coordinates[1] + 1)) == False
+
+def can_capture_right(board, turn, coordinates):
+    if turn == WHITE:
+        return not move([x[:] for x in board], turn, coordinates, (coordinates[0] + 1, coordinates[1] - 1)) == False
+    return not move([x[:] for x in board], turn, coordinates, (coordinates[0] + 1, coordinates[1] + 1)) == False
+
+    
+def can_capture_left(board, turn, coordinates):
+    if turn == WHITE:
+        return not move([x[:] for x in board], turn, coordinates, (coordinates[0] - 1, coordinates[1] - 1)) == False
+    return not move([x[:] for x in board], turn, coordinates, (coordinates[0] - 1, coordinates[1] + 1)) == False
+
+
 
 
 
@@ -166,6 +185,7 @@ def minimax(board, node, turn):
             fturn = WHITE
         for i in possible_moves([x[:] for x in board], fturn):
             #nächst tiefere Analysestufe
+
             if(minimax(move([x[:] for x in board], fturn, (i[0][0], i[0][1]), (i[1][0], i[1][1])), node + 1, turn) == 0):
                 if (node == 1):
                     return i
